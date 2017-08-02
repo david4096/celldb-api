@@ -9,16 +9,16 @@ import io
 
 URL = "localhost"
 
-@route('/samples')
+@route('/list_samples')
 def list_samples(request):
     connection = celldb.connect(URL)
-    return str(list(celldb.list_samples(connection)))
+    return json.dumps({"sample_ids": list(celldb.list_samples(connection))})
 
 
-@route('/features')
+@route('/list_features')
 def list_features(request):
     connection = celldb.connect(URL)
-    return str(list(celldb.list_features(connection)))
+    return json.dumps({"feature_ids": list(celldb.list_features(connection))})
 
 @route('/matrix', methods=['POST'])
 def matrix(request):
@@ -29,7 +29,7 @@ def matrix(request):
     ret_dict = {}
     for row in matrix_data:
         ret_dict[row[0]] = row[1:]
-    return json.dumps(ret_dict)
+    return json.dumps({"matrix": ret_dict})
 
 @route('/matrix/tsv', methods=['POST'])
 def matrix_tsv(request):
