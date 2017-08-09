@@ -1,24 +1,42 @@
+import json
+
 from klein import run, route
-import numpy as np
+from twisted.web.static import File
 
 from celldb import pd as celldb
 
-import json
-import csv
-import io
-
 URL = "localhost"
+
+
+def set_acao(req):
+    req.setHeader('Access-Control-Allow-Origin', '*')
+    req.setHeader('Access-Control-Allow-Methods', '*')
+    req.setHeader('Access-Control-Allow-Headers',
+                  'x-prototype-version,x-requested-with')
+    req.setHeader('Access-Control-Max-Age', 2520)  # 42 hours
+    return req
+
+
+@route('/static/', branch=True)
+def static(request):
+    return File("./static")
+
 
 @route('/list_samples')
 def list_samples(request):
     connection = celldb.connect(URL)
-    return json.dumps({"sample_ids": list(celldb.list_samples(connection))})
+    request.write(
+        json.dumps({"sample_ids": list(celldb.list_samples(connection))}))
+    request.finish()
 
 
 @route('/list_features')
 def list_features(request):
     connection = celldb.connect(URL)
-    return json.dumps({"feature_ids": list(celldb.list_features(connection))})
+    request.write(
+        json.dumps({"feature_ids": list(celldb.list_features(connection))}))
+    request.finish()
+
 
 @route('/matrix', methods=['POST'])
 def matrix(request):
@@ -29,7 +47,20 @@ def matrix(request):
     ret_dict = {}
     for row in matrix_data:
         ret_dict[row[0]] = row[1:]
-    return json.dumps({"matrix": ret_dict})
+    request.setHeader('Content-Type', 'application/json')
+    request.write(json.dumps({"matrix": ret_dict}))
+    request.finish()
+
+
+@route('/sparse_matrix', methods=['POST'])
+def matrix_sparse(request):
+    connection = celldb.connect(URL)
+    request_dict = json.loads(request.content.read())
+    matrix_data = celldb.sparse_dict(
+        connection, request_dict['sample_ids'], request_dict['feature_ids'])
+    request.write(json.dumps(matrix_data))
+    request.finish()
+
 
 @route('/matrix/tsv', methods=['POST'])
 def matrix_tsv(request):
@@ -44,7 +75,8 @@ def matrix_tsv(request):
 def matrix_dataframe(request):
     connection = celldb.connect(URL)
     request_dict = json.loads(request.content.read())
-    df = celldb.df(connection, request_dict['sample_ids'], request_dict['feature_ids'])
+    df = celldb.df(
+        connection, request_dict['sample_ids'], request_dict['feature_ids'])
     return df.to_string()
 
 
@@ -52,8 +84,10 @@ def matrix_dataframe(request):
 def matrix_html(request):
     connection = celldb.connect(URL)
     request_dict = json.loads(request.content.read())
-    df = celldb.df(connection, request_dict['sample_ids'], request_dict['feature_ids'])
+    df = celldb.df(
+        connection, request_dict['sample_ids'], request_dict['feature_ids'])
     return df.to_html()
+
 
 def main(args=None):
     run("localhost", 8080)
