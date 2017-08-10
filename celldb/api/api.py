@@ -25,6 +25,7 @@ def static(request):
 @route('/list_samples')
 def list_samples(request):
     connection = celldb.connect(URL)
+    request.setHeader('Content-Type', 'application/json')
     request.write(
         json.dumps({"sample_ids": list(celldb.list_samples(connection))}))
     request.finish()
@@ -33,6 +34,7 @@ def list_samples(request):
 @route('/list_features')
 def list_features(request):
     connection = celldb.connect(URL)
+    request.setHeader('Content-Type', 'application/json')
     request.write(
         json.dumps({"feature_ids": list(celldb.list_features(connection))}))
     request.finish()
@@ -58,6 +60,7 @@ def matrix_sparse(request):
     request_dict = json.loads(request.content.read())
     matrix_data = celldb.sparse_dict(
         connection, request_dict['sample_ids'], request_dict['feature_ids'])
+    request.setHeader('Content-Type', 'application/json')
     request.write(json.dumps(matrix_data))
     request.finish()
 
@@ -65,7 +68,7 @@ def matrix_sparse(request):
 @route('/matrix/tsv', methods=['POST'])
 def matrix_tsv(request):
     connection = celldb.connect(URL)
-    request_dict = json.loads(request.content.read())
+    request_dict = json.loads(request.content.read())   
     df = celldb.df(
         connection, request_dict['sample_ids'], request_dict['feature_ids'])
     return df.to_csv(sep="\t")
