@@ -24,6 +24,7 @@ def static(request):
 
 @route('/list_samples')
 def list_samples(request):
+    request = set_acao(request)
     connection = celldb.connect(URL)
     request.setHeader('Content-Type', 'application/json')
     request.write(
@@ -33,6 +34,7 @@ def list_samples(request):
 
 @route('/list_features')
 def list_features(request):
+    request = set_acao(request)
     connection = celldb.connect(URL)
     request.setHeader('Content-Type', 'application/json')
     request.write(
@@ -42,6 +44,7 @@ def list_features(request):
 
 @route('/matrix', methods=['POST'])
 def matrix(request):
+    request = set_acao(request)
     connection = celldb.connect(URL)
     request_dict = json.loads(request.content.read())
     matrix_data = celldb.matrix(
@@ -56,6 +59,7 @@ def matrix(request):
 
 @route('/sparse_matrix', methods=['POST'])
 def matrix_sparse(request):
+    request = set_acao(request)
     connection = celldb.connect(URL)
     request_dict = json.loads(request.content.read())
     matrix_data = celldb.sparse_dict(
@@ -67,8 +71,9 @@ def matrix_sparse(request):
 
 @route('/matrix/tsv', methods=['POST'])
 def matrix_tsv(request):
+    request = set_acao(request)
     connection = celldb.connect(URL)
-    request_dict = json.loads(request.content.read())   
+    request_dict = json.loads(request.content.read())
     df = celldb.df(
         connection, request_dict['sample_ids'], request_dict['feature_ids'])
     return df.to_csv(sep="\t")
@@ -76,6 +81,7 @@ def matrix_tsv(request):
 
 @route('/matrix/dataframe', methods=['POST'])
 def matrix_dataframe(request):
+    request = set_acao(request)
     connection = celldb.connect(URL)
     request_dict = json.loads(request.content.read())
     df = celldb.df(
@@ -85,6 +91,7 @@ def matrix_dataframe(request):
 
 @route('/matrix/html', methods=['POST'])
 def matrix_html(request):
+    request = set_acao(request)
     connection = celldb.connect(URL)
     request_dict = json.loads(request.content.read())
     df = celldb.df(
